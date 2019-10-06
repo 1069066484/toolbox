@@ -132,14 +132,14 @@ void resample( T *A, T *B, int ha, int hb, int wa, int wb, int d, T r ) {
 // B = imResampleMex(A,hb,wb,nrm); see imResample.m for usage details
 #ifdef MATLAB_MEX_FILE
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  int *ns, ms[3], n, m, nCh, nDims;
+  mwSize ms[3], n, m, nCh, nDims;
   void *A, *B; mxClassID id; double nrm;
 
   // Error checking on arguments
   if( nrhs!=4) mexErrMsgTxt("Four inputs expected.");
   if( nlhs>1 ) mexErrMsgTxt("One output expected.");
   nDims=mxGetNumberOfDimensions(prhs[0]); id=mxGetClassID(prhs[0]);
-  ns = (int*) mxGetDimensions(prhs[0]); nCh=(nDims==2) ? 1 : ns[2];
+  const mwSize *ns = mxGetDimensions(prhs[0]); nCh=(nDims==2) ? 1 : ns[2];
   if( (nDims!=2 && nDims!=3) ||
     (id!=mxSINGLE_CLASS && id!=mxDOUBLE_CLASS && id!=mxUINT8_CLASS) )
     mexErrMsgTxt("A should be 2D or 3D single, double or uint8 array.");
@@ -147,9 +147,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if( ms[0]<=0 || ms[1]<=0 ) mexErrMsgTxt("downsampling factor too small.");
   nrm=(double)mxGetScalar(prhs[3]);
 
+  //mexPrintf("imResampleMex mexFunction 1\n");
+
   // create output array
-  plhs[0] = mxCreateNumericArray(3, (const mwSize*) ms, id, mxREAL);
+  plhs[0] = mxCreateNumericArray(3, ms, id, mxREAL);
   n=ns[0]*ns[1]*nCh; m=ms[0]*ms[1]*nCh;
+  //mexPrintf("imResampleMex mexFunction 2\n");
 
   // perform resampling (w appropriate type)
   A=mxGetData(prhs[0]); B=mxGetData(plhs[0]);
