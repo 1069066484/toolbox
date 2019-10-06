@@ -68,28 +68,29 @@ template<class T> void imPad( T *A, T *B, int h, int w, int d, int pt, int pb,
 
 // B = imPadMex(A,pad,type); see imPad.m for usage details
 #ifdef MATLAB_MEX_FILE
+typedef long long int64;
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-  int *ns, ms[3], nCh, nDims, pt, pb, pl, pr, flag, k; double *p;
+  int64 ms[3], nCh, nDims, pt, pb, pl, pr, flag, k; double *p;
   void *A, *B; mxClassID id; double val=0; char type[1024];
-
+  //mexPrintf("imPadMex mexFunction 1 \n");
   // Error checking on arguments
   if( nrhs!=3 ) mexErrMsgTxt("Three inputs expected.");
   if( nlhs>1 ) mexErrMsgTxt("One output expected.");
   nDims=mxGetNumberOfDimensions(prhs[0]); id=mxGetClassID(prhs[0]);
-  ns = (int*) mxGetDimensions(prhs[0]); nCh=(nDims==2) ? 1 : ns[2];
+  const mwSize *ns = mxGetDimensions(prhs[0]); nCh=(nDims==2) ? 1 : ns[2];
   if( (nDims!=2 && nDims!=3) ||
     (id!=mxSINGLE_CLASS && id!=mxDOUBLE_CLASS && id!=mxUINT8_CLASS) )
     mexErrMsgTxt("A should be 2D or 3D single, double or uint8 array.");
   if( !mxIsDouble(prhs[1]) ) mexErrMsgTxt("Input pad must be a double array.");
-
+  //mexPrintf("imPadMex mexFunction 2 \n");
   // extract padding amounts
-  k = (int) mxGetNumberOfElements(prhs[1]);
+  k = mxGetNumberOfElements(prhs[1]);
   p = (double*) mxGetData(prhs[1]);
-  if(k==1) { pt=pb=pl=pr=int(p[0]); }
-  else if (k==2) { pt=pb=int(p[0]); pl=pr=int(p[1]); }
-  else if (k==4) { pt=int(p[0]); pb=int(p[1]); pl=int(p[2]); pr=int(p[3]); }
+  if(k==1) { pt=pb=pl=pr=p[0]; }
+  else if (k==2) { pt=pb=p[0]; pl=pr=p[1]; }
+  else if (k==4) { pt=p[0]; pb=p[1]; pl=p[2]; pr=p[3]; }
   else mexErrMsgTxt( "Input pad must have 1, 2, or 4 values.");
-
+  //mexPrintf("imPadMex mexFunction 3 \n");
   // figure out padding type (flag and val)
   if( !mxGetString(prhs[2],type,1024) ) {
     if(!strcmp(type,"replicate")) flag=1;
@@ -100,14 +101,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     flag=0; val=(double)mxGetScalar(prhs[2]);
   }
   if( ns[0]==0 || ns[1]==0 ) flag=0;
-
+  //mexPrintf("imPadMex mexFunction 4 \n");
   // create output array
-  ms[0]=ns[0]+pt+pb; ms[1]=ns[1]+pl+pr; ms[2]=nCh;
-  if( ms[0]<0 || ns[0]<=-pt || ns[0]<=-pb ) ms[0]=0;
-  if( ms[1]<0 || ns[1]<=-pl || ns[1]<=-pr ) ms[1]=0;
+  ms[0]=int64(ns[0])+pt+pb; ms[1]=int64(ns[1])+pl+pr; ms[2]=nCh;
+  if( ms[0]<0 || int64(ns[0])<=-pt || int64(ns[0])<=-pb ) ms[0]=0;
+  if( ms[1]<0 || int64(ns[1])<=-pl || int64(ns[1])<=-pr ) ms[1]=0;
   plhs[0] = mxCreateNumericArray(3, (const mwSize*) ms, id, mxREAL);
   if( ms[0]==0 || ms[1]==0 ) return;
-
+  //mexPrintf("imPadMex mexFunction 5 \n");
   // pad array
   A=mxGetData(prhs[0]); B=mxGetData(plhs[0]);
   if( id==mxDOUBLE_CLASS ) {
