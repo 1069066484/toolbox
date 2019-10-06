@@ -15,7 +15,7 @@
 *******************************************************************************/
 #if (_MSC_VER >= 1600)
 #define __STDC_UTF_16__
-typedef unsigned short char16_t;
+// typedef unsigned short char16_t;
 #endif
 
 #include "mex.h"
@@ -75,7 +75,7 @@ int  HeapNode::operator <(FibHeapNode& RHS) {
 *******************************************************************************/
 void dijkstra1( long int n, long int s, double *D1, double *P1, double *Gpr, mwIndex *Gir, mwIndex *Gjc) {
   int      finished;
-  long int i, startInd, endInd, whichNeigh, nDone, closest;
+  mwSize i, startInd, endInd, whichNeigh, nDone, closest;
   double   closestD, arcLength, INF, SMALL, oldDist;
   HeapNode *A, *hnMin, hnTmp; FibHeap *heap;
   INF=mxGetInf(); SMALL=mxGetEps();
