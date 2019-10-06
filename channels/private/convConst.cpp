@@ -196,8 +196,9 @@ void convMax( float *I, float *O, int h, int w, int d, int r ) {
 
 // B=convConst(type,A,r,s); fast 2D convolutions (see convTri.m and convBox.m)
 #ifdef MATLAB_MEX_FILE
+typedef long long int64;
 void mexFunction( int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[] ) {
-  int *ns, ms[3], nDims, d, m, r, s; float *A, *B, p;
+  int64 ms[3], nDims, d, m, r, s; float *A, *B, p;
   mxClassID id; char type[1024];
 
   // error checking on arguments
@@ -205,9 +206,10 @@ void mexFunction( int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[] ) {
   if(nlhs > 1) mexErrMsgTxt("One output expected.");
   nDims = mxGetNumberOfDimensions(prhs[1]);
   id = mxGetClassID(prhs[1]);
-  ns = (int*) mxGetDimensions(prhs[1]);
+  const mwSize *ns = mxGetDimensions(prhs[1]);
   d = (nDims == 3) ? ns[2] : 1;
-  m = (ns[0] < ns[1]) ? ns[0] : ns[1];
+  m = int64((ns[0] < ns[1]) ? ns[0] : ns[1]);
+  // mexPrintf("nDims= %d \n", nDims);
   if( (nDims!=2 && nDims!=3) || id!=mxSINGLE_CLASS || m<4 )
     mexErrMsgTxt("A must be a 4x4 or bigger 2D or 3D float array.");
 
@@ -222,7 +224,7 @@ void mexFunction( int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[] ) {
   if( r<0 ) mexErrMsgTxt("Invalid radius r");
 
   // create output array (w/o initializing to 0)
-  ms[0]=ns[0]/s; ms[1]=ns[1]/s; ms[2]=d;
+  ms[0]=int64(ns[0])/s; ms[1]=int64(ns[1])/s; ms[2]=d;
   B = (float*) mxMalloc(ms[0]*ms[1]*d*sizeof(float));
   plhs[0] = mxCreateNumericMatrix(0, 0, mxSINGLE_CLASS, mxREAL);
   mxSetData(plhs[0], B); mxSetDimensions(plhs[0],(mwSize*)ms,nDims);
