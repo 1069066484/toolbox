@@ -9,7 +9,7 @@
 #include "sse.hpp"
 
 #define PI 3.14159265f
-
+typedef long long int64;
 // compute x and y gradients for just one column (uses sse)
 void grad1( float *I, float *Gx, float *Gy, int h, int w, int x ) {
   int y, y1; float *Ip, *In, r; __m128 *_Ip, *_In, *_G, _r;
@@ -319,7 +319,7 @@ void fhog( float *M, float *O, float *H, int h, int w, int binSize,
 #ifdef MATLAB_MEX_FILE
 // Create [hxwxd] mxArray array, initialize to 0 if c=true
 mxArray* mxCreateMatrix3( int h, int w, int d, mxClassID id, bool c, void **I ){
-  const int dims[3]={h,w,d}, n=h*w*d; int b; mxArray* M;
+  const mwSize dims[3]={h,w,d}; int64 n=h*w*d; int b; mxArray* M;
   if( id==mxINT32_CLASS ) b=sizeof(int);
   else if( id==mxDOUBLE_CLASS ) b=sizeof(double);
   else if( id==mxSINGLE_CLASS ) b=sizeof(float);
@@ -333,7 +333,7 @@ mxArray* mxCreateMatrix3( int h, int w, int d, mxClassID id, bool c, void **I ){
 void checkArgs( int nl, mxArray *pl[], int nr, const mxArray *pr[], int nl0,
   int nl1, int nr0, int nr1, int *h, int *w, int *d, mxClassID id, void **I )
 {
-  const int *dims; int nDims;
+  const mwSize *dims; int nDims;
   if( nl<nl0 || nl>nl1 ) mexErrMsgTxt("Incorrect number of outputs.");
   if( nr<nr0 || nr>nr1 ) mexErrMsgTxt("Incorrect number of inputs.");
   nDims = mxGetNumberOfDimensions(pr[0]); dims = mxGetDimensions(pr[0]);
@@ -403,6 +403,7 @@ void mGradHist( int nl, mxArray *pl[], int nr, const mxArray *pr[] ) {
 
 // inteface to various gradient functions (see corresponding Matlab functions)
 void mexFunction( int nl, mxArray *pl[], int nr, const mxArray *pr[] ) {
+  // mexPrintf("sizeofa00=%d\n", sizeof(mxArray[0][0]));
   int f; char action[1024]; f=mxGetString(pr[0],action,1024); nr--; pr++;
   if(f) mexErrMsgTxt("Failed to get action.");
   else if(!strcmp(action,"gradient2")) mGrad2(nl,pl,nr,pr);
